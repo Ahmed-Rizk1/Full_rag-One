@@ -65,3 +65,44 @@ async def read_current_user(
 ):
     """Retrieve the currently authenticated user's profile details."""
     return current_user
+
+
+from fastapi.responses import HTMLResponse
+from sqlalchemy import select
+
+
+@router.get(
+    "/verify",
+    response_class=HTMLResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def verify_email(
+    token: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Verify user registration token and mark account as active/verified."""
+    stmt = select(User).where(User.verification_token == token)
+    res = await db.execute(stmt)
+    user = res.scalar_one_or_none()
+    
+    if not user:
+        return """
+        <html>
+            <body style="font-family: sans-serif; background-color: #09090b; color: #ef4444; text-align: center; padding-top: 100px;">
+                <h2>❌ Invalid or expired verification token.</h2>
+            </body>
+        </html>
+        """
+    
+    user.is_verified = True
+    user.verification_token = None
+    await db.commit()
+    
+    return """
+    <html>
+        <body style="font-family: sans-serif; background-color: #09090b; color: #10b981; text-align: center; padding-top: 100px;">
+            <h2>🎉 Email verified successfully!</h2>
+            <p style="color: #a1a1aa;">You can now close this tab and sign in through the workspace portal.</p>
+        </body>
+    </html>
+    """

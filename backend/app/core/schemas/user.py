@@ -7,6 +7,7 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str | None = None
     role: str = "user"
+    is_verified: bool = False
 
 
 class SignupRequest(BaseModel):
@@ -35,6 +36,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     full_name: str | None
     role: str
+    is_verified: bool
     created_at: datetime
     updated_at: datetime
 

@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import settings
 from app.core.exceptions import AppError, AuthError
 from app.core.schemas.user import LoginRequest, SignupRequest, TokenResponse
 from app.core.security import (
@@ -25,20 +26,31 @@ class AuthService:
                 status_code=409,
             )
 
+        import uuid
+        verification_token = str(uuid.uuid4())
         hashed_password = hash_password(signup_data.password)
         user_data = {
             "email": signup_data.email,
             "hashed_password": hashed_password,
             "full_name": signup_data.full_name,
             "role": "user",  # Default role
+            "is_verified": settings.ENVIRONMENT == "testing",
+            "verification_token": verification_token,
         }
-        return await user_repository.create(db, obj_in=user_data)
+        
+        user = await user_repository.create(db, obj_in=user_data)
+        # Log/Print verification link
+        print(f"📧 VERIFICATION EMAIL SENT TO {signup_data.email} | Link: http://localhost:8000/api/v1/auth/verify?token={verification_token}")
+        return user
 
     async def login(self, db: AsyncSession, login_data: LoginRequest) -> TokenResponse:
         """Authenticate user credentials and return a new session token pair."""
         user = await user_repository.get_by_email(db, email=login_data.email)
         if not user or not verify_password(login_data.password, user.hashed_password):
             raise AuthError("Invalid email or password.")
+
+        if not user.is_verified:
+            raise AppError("Email not verified. Please verify your email first.", status_code=403)
 
         access_token = create_access_token(subject=user.id)
         refresh_token = create_refresh_token(subject=user.id)

@@ -20,12 +20,25 @@ class WorkflowCreate(BaseModel):
     steps: list[dict] = []
 
 
+class WorkflowStepResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    step_order: int
+    agent_type: str
+    status: str
+    input_data: dict = {}
+    output_data: dict = {}
+
+
 class WorkflowResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: uuid.UUID
     name: str
     status: str
+    steps: list[WorkflowStepResponse] = []
+    execution_log: dict = {}
 
 
 @router.get("", response_model=list[WorkflowResponse], status_code=status.HTTP_200_OK)
@@ -46,9 +59,10 @@ async def create_workflow(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return await workflow_service.create_workflow(
+    wf = await workflow_service.create_workflow(
         db, user_id=current_user.id, name=payload.name, steps=payload.steps
     )
+    return await workflow_service.get_workflow(db, workflow_id=wf.id)
 
 
 @router.post("/{id}/execute", status_code=status.HTTP_202_ACCEPTED)

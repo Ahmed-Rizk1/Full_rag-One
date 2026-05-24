@@ -21,7 +21,11 @@ class WorkflowRepository(BaseRepository[Workflow]):
     ) -> Sequence[Workflow]:
         result = await db.execute(
             select(Workflow)
-            .where(Workflow.user_id == user_id)
+            .options(selectinload(Workflow.steps))
+            .where(
+                Workflow.user_id == user_id,
+                ~Workflow.name.like("repo_analysis:%")
+            )
             .offset(skip)
             .limit(limit)
         )

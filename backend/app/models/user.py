@@ -29,3 +29,12 @@ class User(Base, UUIDMixin, TimestampMixin):
         server_default="user",
         nullable=False,
     )
+    is_verified: Mapped[bool] = mapped_column(
+        default=False,
+        server_default="false",
+        nullable=False,
+    )
+    verification_token: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
