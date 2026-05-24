@@ -1,21 +1,36 @@
 from typing import Any
 import chromadb
 from chromadb.api import ClientAPI
+import structlog
 
 from app.config import settings
 
+logger = structlog.get_logger()
+
 
 class VectorStore:
-    """Adapter class wrapping the ChromaDB client to manage document embeddings."""
+    """Adapter class wrapping the ChromaDB client to manage document embeddings.
+
+    Gracefully falls back to EphemeralClient if HTTP server is unreachable.
+    """
 
     def __init__(self, client: ClientAPI | None = None) -> None:
         if client is not None:
             self.client = client
         else:
-            self.client = chromadb.HttpClient(
-                host=settings.CHROMA_HOST,
-                port=str(settings.CHROMA_PORT),
-            )
+            try:
+                self.client = chromadb.HttpClient(
+                    host=settings.CHROMA_HOST,
+                    port=str(settings.CHROMA_PORT),
+                )
+                # Test connectivity
+                self.client.heartbeat()
+            except Exception as e:
+                logger.warning(
+                    "Could not connect to ChromaDB HTTP Server. Falling back to EphemeralClient.",
+                    error=str(e),
+                )
+                self.client = chromadb.EphemeralClient()
 
     def _get_collection(self, collection_name: str):
         """Retrieve or create a ChromaDB collection by name."""

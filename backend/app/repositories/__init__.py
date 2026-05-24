@@ -6,6 +6,12 @@ from app.repositories.document_repo import (
     document_repository,
     document_chunk_repository,
 )
+from app.repositories.conversation_repo import (
+    ConversationRepository,
+    MessageRepository,
+    conversation_repository,
+    message_repository,
+)
 
 __all__ = [
     "BaseRepository",
@@ -15,4 +21,8 @@ __all__ = [
     "DocumentChunkRepository",
     "document_repository",
     "document_chunk_repository",
+    "ConversationRepository",
+    "MessageRepository",
+    "conversation_repository",
+    "message_repository",
 ]

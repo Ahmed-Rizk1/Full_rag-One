@@ -1,39 +1,16 @@
-# Byte-compiled / optimized / DLL files
+.venv/
 __pycache__/
 *.py[cod]
 *$py.class
-
-# Pytest & Linter Cache
 .pytest_cache/
-.pytest_cache
-.ruff_cache/
-.mypy_cache/
-
-# Virtual Environments
-.venv/
-.venv
-venv/
-env/
-
-# Local configuration & Secrets
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-# SQLite Database files
+backend/storage/
+backend/.venv/
+backend/__pycache__/
+backend/.pytest_cache/
 *.db
-*.sqlite
 *.sqlite3
-
-# IDEs & System files
-.vscode/
+.env
+.env.*
+!.env.example
 .idea/
-*.swp
-*.swo
-.DS_Store
-Thumbs.db
-.prd.txt
-.implementation_roadmap.md
-.task.md
+.vscode/

@@ -24,6 +24,8 @@ dependencies = [
     "chromadb>=0.4.24",
     "celery>=5.3.6",
     "python-multipart>=0.0.9",
+    "langgraph>=0.0.30",
+    "langchain-core>=0.1.30",
 ]
 
 [dependency-groups]
