@@ -34,3 +34,6 @@ env/
 *.swo
 .DS_Store
 Thumbs.db
+prd.txt
+implementation_roadmap.md
+task.md
