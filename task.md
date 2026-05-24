@@ -327,13 +327,13 @@ class LLMClient:
 
 ### Acceptance Criteria
 
-- [ ] Intent classifier correctly routes: knowledge queries → Research, code questions → Code, task breakdowns → Planning
-- [ ] Research agent retrieves RAG context, generates cited answers
-- [ ] Code agent analyzes diffs, returns structured review
-- [ ] Planning agent decomposes tasks into subtask lists
-- [ ] Chat endpoint streams tokens via SSE
-- [ ] Conversation and messages persisted in PostgreSQL
-- [ ] Tool calls visible in streaming events
+- [x] Intent classifier correctly routes: knowledge queries → Research, code questions → Code, task breakdowns → Planning
+- [x] Research agent retrieves RAG context, generates cited answers
+- [x] Code agent analyzes diffs, returns structured review
+- [x] Planning agent decomposes tasks into subtask lists
+- [x] Chat endpoint streams tokens via SSE
+- [x] Conversation and messages persisted in PostgreSQL
+- [x] Tool calls visible in streaming events
 
 ### Testing Strategy
 
