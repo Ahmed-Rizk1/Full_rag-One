@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ai_workspace_os_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Lint with Ruff
+        working-directory: backend
+        run: uv run ruff check .
+
+      - name: Run tests
+        working-directory: backend
+        env:
+          ENVIRONMENT: testing
+          SECRET_KEY: ci_test_secret_key
+          POSTGRES_ASYNC_URI: "postgresql+asyncpg://postgres:postgres@localhost:5432/ai_workspace_os_test"
+          REDIS_URL: "redis://localhost:6379/0"
+          CHROMA_HOST: localhost
+          CHROMA_PORT: 8100
+          GROQ_API_KEY: "gsk_test_key"
+        run: uv run python -m pytest --tb=short -q

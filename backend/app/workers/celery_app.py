@@ -14,5 +14,5 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
-    imports=["app.workers.ingestion_tasks", "app.workers.workflow_tasks"],
+    imports=["app.workers.ingestion_tasks", "app.workers.workflow_tasks", "app.workers.repo_tasks"],
 )
