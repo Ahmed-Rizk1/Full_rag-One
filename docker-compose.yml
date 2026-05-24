@@ -28,7 +28,7 @@ services:
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - "6380:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -75,6 +75,8 @@ services:
       CHROMA_PORT: 8000
     ports:
       - "8000:8000"
+    volumes:
+      - shared_storage:/app/storage
     depends_on:
       db:
         condition: service_healthy
@@ -84,9 +86,10 @@ services:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
-      interval: 30s
+      interval: 15s
       timeout: 10s
-      retries: 3
+      retries: 5
+      start_period: 120s
     logging:
       driver: json-file
       options:
@@ -105,6 +108,8 @@ services:
       REDIS_URL: redis://redis:6379/0
       CHROMA_HOST: chroma
       CHROMA_PORT: 8000
+    volumes:
+      - shared_storage:/app/storage
     command: ["celery", "-A", "app.workers.celery_app:celery_app", "worker", "--loglevel=info", "--concurrency=2"]
     depends_on:
       db:
@@ -124,7 +129,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: http://backend:8000/api/v1
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
     ports:
       - "3000:3000"
     depends_on:
@@ -145,3 +150,4 @@ volumes:
   postgres_data:
   redis_data:
   chroma_data:
+  shared_storage:

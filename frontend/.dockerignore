@@ -1,0 +1,6 @@
+# Ignore Node/Next.js dependencies and build output
+node_modules
+.next
+out
+.git
+.github

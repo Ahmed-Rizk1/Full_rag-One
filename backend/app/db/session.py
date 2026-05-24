@@ -3,12 +3,14 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from app.config import settings
 
+from sqlalchemy.pool import NullPool
+
 # Create async database engine
 # Using echo=True/False depending on environment if needed, but defaults to False
 engine = create_async_engine(
     settings.POSTGRES_ASYNC_URI,
     future=True,
-    pool_pre_ping=True,
+    poolclass=NullPool,
 )
 
 # Async session factory

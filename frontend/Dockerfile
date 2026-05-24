@@ -1,14 +1,20 @@
 # ── Dependencies stage ────────────────────────────────────────────
 FROM node:20-alpine AS deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 
 # ── Build stage ───────────────────────────────────────────────────
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY package.json ./
+COPY tsconfig.json ./
+COPY next.config.js ./
+COPY postcss.config.js ./
+COPY tailwind.config.js ./
+COPY public ./public
+COPY src ./src
 
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build

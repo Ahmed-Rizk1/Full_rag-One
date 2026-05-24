@@ -9,7 +9,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 COPY pyproject.toml uv.lock* ./
-RUN uv sync --frozen --no-dev --no-editable
+RUN uv sync --no-dev --no-editable
 
 COPY . .
 
@@ -24,13 +24,13 @@ RUN groupadd --gid 1000 appuser && \
     useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
 
 WORKDIR /app
+RUN chown appuser:appuser /app
 
-COPY --from=builder /app/.venv .venv
-COPY --from=builder /app/app app
-COPY --from=builder /app/alembic alembic
-COPY --from=builder /app/alembic.ini alembic.ini
+COPY --from=builder --chown=appuser:appuser /app/.venv .venv
+COPY --from=builder --chown=appuser:appuser /app/app app
+COPY --from=builder --chown=appuser:appuser /app/alembic alembic
+COPY --from=builder --chown=appuser:appuser /app/alembic.ini alembic.ini
 
-RUN chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 8000

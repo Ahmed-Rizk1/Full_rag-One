@@ -24,6 +24,33 @@ class RepoAnalysisResponse(BaseModel):
     status: str
 
 
+@router.get("", status_code=status.HTTP_200_OK)
+async def list_repositories(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    from app.repositories.workflow_repo import workflow_repository
+    from sqlalchemy import select
+    
+    result = await db.execute(
+        select(workflow_repository.model)
+        .where(
+            workflow_repository.model.user_id == current_user.id,
+            workflow_repository.model.name.like("repo_analysis:%")
+        )
+    )
+    workflows = result.scalars().all()
+    return [
+        {
+            "id": str(wf.id),
+            "name": wf.name.replace("repo_analysis:", ""),
+            "status": wf.status,
+            "created_at": str(wf.created_at),
+        }
+        for wf in workflows
+    ]
+
+
 @router.post("/analyze", response_model=RepoAnalysisResponse, status_code=status.HTTP_202_ACCEPTED)
 async def analyze_repository(
     payload: RepoAnalyzeRequest,

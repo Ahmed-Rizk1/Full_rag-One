@@ -1,0 +1,17 @@
+# Ignore python artifacts
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.ipynb_checkpoints
+
+# Ignore storage and DBs
+storage/
+*.db
+*.sqlite
+
+# Ignore git
+.git
+.github

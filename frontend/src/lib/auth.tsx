@@ -2,11 +2,12 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User } from '@/types';
-import { fetchApi } from './api';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
 interface AuthContextType {
   user: User | null;
-  login: (token: string, refreshToken: string, userData: User) => void;
+  login: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
   isLoading: boolean;
 }
@@ -18,29 +19,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          const res = await fetchApi('/auth/me');
-          if (res.ok) {
-            setUser(await res.json());
-          } else {
-            logout();
-          }
-        } catch (e) {
-          logout();
-        }
-      }
-      setIsLoading(false);
-    };
-    initAuth();
+    const token = localStorage.getItem('access_token');
+    if (!token) { setIsLoading(false); return; }
+
+    fetch(`${API_URL}/auth/me`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(async (res) => {
+        if (res.ok) setUser(await res.json());
+        else logout();
+      })
+      .catch(() => logout())
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const login = (token: string, refreshToken: string, userData: User) => {
-    localStorage.setItem('access_token', token);
+  const login = (accessToken: string, refreshToken: string) => {
+    localStorage.setItem('access_token', accessToken);
     localStorage.setItem('refresh_token', refreshToken);
-    setUser(userData);
+    window.location.href = '/workspace';
   };
 
   const logout = () => {

@@ -12,6 +12,9 @@ from app.services.workflow_service import workflow_service
 router = APIRouter(prefix="/workflows", tags=["workflows"])
 
 
+from app.repositories.workflow_repo import workflow_repository, workflow_step_repository
+
+
 class WorkflowCreate(BaseModel):
     name: str
     steps: list[dict] = []
@@ -23,6 +26,18 @@ class WorkflowResponse(BaseModel):
     id: uuid.UUID
     name: str
     status: str
+
+
+@router.get("", response_model=list[WorkflowResponse], status_code=status.HTTP_200_OK)
+async def list_workflows(
+    skip: int = 0,
+    limit: int = 100,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return await workflow_repository.get_by_user(
+        db, user_id=current_user.id, skip=skip, limit=limit
+    )
 
 
 @router.post("/", response_model=WorkflowResponse, status_code=status.HTTP_201_CREATED)
