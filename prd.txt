@@ -1,0 +1,292 @@
+AI Workspace OS — Multi-Agent Autonomous Productivity Platform
+1. Product Vision
+
+Build a production-grade AI operating workspace that combines:
+
+Multi-agent AI orchestration
+Long-term memory
+RAG pipelines
+Tool calling
+Autonomous task execution
+Real-time collaboration
+Workflow automation
+
+The platform acts as an AI-powered operating system for knowledge workers and developers.
+
+Users can:
+
+Upload documents
+Chat with AI agents
+Automate workflows
+Execute tasks
+Analyze repositories
+Generate reports
+Maintain persistent memory across sessions
+2. Core Goal
+
+Create a SaaS-style AI platform demonstrating:
+
+Advanced LLM engineering
+AI agents architecture
+Production backend engineering
+Async workflows
+Memory systems
+Tool orchestration
+DevOps readiness
+
+The project must feel like:
+
+“a real startup product”
+
+not a university AI demo.
+
+3. Tech Stack (STRICT)
+Backend
+FastAPI
+Python 3.12
+LLM
+Groq API ONLY
+Models:
+llama-3.3-70b-versatile
+deepseek-r1-distill-llama-70b
+Agent Framework
+LangGraph
+LangChain
+Database
+PostgreSQL
+Vector Database
+ChromaDB
+Queue / Async
+Redis
+Celery
+Auth
+JWT Authentication
+DevOps
+Docker
+Docker Compose
+GitHub Actions
+Frontend
+Next.js 15
+TypeScript
+TailwindCSS
+shadcn/ui
+4. System Architecture
+
+The system contains:
+
+A. API Gateway
+
+Handles:
+
+auth
+routing
+rate limiting
+request validation
+B. Multi-Agent Engine
+
+Agents include:
+
+1. Research Agent
+searches uploaded knowledge
+performs semantic retrieval
+summarizes findings
+2. Code Agent
+analyzes repositories
+reviews PR diffs
+explains code
+3. Planning Agent
+breaks tasks into subtasks
+generates execution plans
+4. Memory Agent
+stores long-term memory
+retrieves contextual history
+5. Automation Agent
+executes workflows
+chains tools together
+C. RAG Engine
+
+Features:
+
+PDF/DOCX/TXT ingestion
+chunking pipeline
+embeddings generation
+semantic retrieval
+citation-aware responses
+hybrid retrieval:
+dense retrieval
+keyword retrieval
+D. Memory System
+
+Two memory types:
+
+Short-Term Memory
+session context
+active conversation state
+Long-Term Memory
+persistent user memory
+preferences
+previous workflows
+stored insights
+E. Workflow Engine
+
+Supports:
+
+async execution
+scheduled jobs
+chained workflows
+retries
+background processing
+5. Key Features
+Authentication
+signup/login
+JWT access/refresh tokens
+RBAC roles
+AI Chat Workspace
+streaming responses
+markdown rendering
+file-aware chat
+conversation history
+Document Intelligence
+
+Users can:
+
+upload files
+ask questions
+summarize documents
+extract insights
+AI PR Review System
+
+The AI should:
+
+analyze git diffs
+detect:
+bad practices
+bugs
+security issues
+code smells
+generate:
+review comments
+optimization suggestions
+refactoring advice
+Repository Intelligence
+repository summarization
+architecture explanation
+dependency analysis
+AI Task Automation
+
+Users can:
+
+create workflows
+connect agents
+automate tasks
+
+Example:
+
+Upload contract → summarize → extract clauses → generate report
+
+6. UI Requirements
+
+The UI must look modern SaaS.
+
+Pages:
+
+Landing Page
+Dashboard
+AI Workspace
+File Management
+Workflow Builder
+Repository Analyzer
+Settings
+
+UI style:
+
+dark mode
+glassmorphism
+responsive
+smooth animations
+7. Deployment Requirements
+
+Must support:
+
+Docker deployment
+environment variables
+production-ready structure
+
+Include:
+
+.env.example
+docker-compose.yml
+health checks
+logging
+monitoring-ready structure
+8. Folder Structure
+
+Must follow clean architecture:
+
+backend/
+frontend/
+agents/
+services/
+core/
+api/
+models/
+repositories/
+workers/
+rag/
+memory/
+9. Engineering Standards
+
+Code must include:
+
+typing
+Pydantic validation
+modular architecture
+reusable services
+async support
+error handling
+logging
+10. Advanced Features (HIGH PRIORITY)
+
+Implement:
+
+streaming token responses
+conversation memory
+semantic caching
+background ingestion
+tool calling
+agent routing
+retry logic
+observability hooks
+11. Resume Value Goal
+
+The project should clearly demonstrate:
+
+LLM engineering
+AI systems design
+backend engineering
+distributed workflows
+production deployment
+multi-agent orchestration
+scalable architecture
+12. Final Deliverables
+
+Generate:
+
+full backend
+frontend
+docker setup
+README
+API documentation
+architecture diagram
+setup instructions
+sample environment file
+production-ready repository structure
+13. Important Constraints
+Use Groq API ONLY
+Do NOT use OpenAI APIs
+Prioritize clean architecture over rapid prototyping
+Avoid notebook-style implementation
+Build production-style services
+All AI features must be modular and extensible
+
+the work will be by using uv venv in powershell env
