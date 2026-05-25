@@ -1,4 +1,5 @@
 import os
+from enum import Enum
 from typing import Any, AsyncIterator
 import groq
 from tenacity import retry, retry_if_exception, stop_after_attempt, wait_exponential
@@ -19,7 +20,7 @@ def is_transient_error(exception: Exception) -> bool:
 
 
 class LLMClient:
-    """Production-grade asynchronous client wrapper for the Groq API."""
+    """Production-grade asynchronous client wrapper for the Groq and OpenAI APIs."""
 
     def __init__(self, api_key: str | None = None) -> None:
         key = api_key or settings.GROQ_API_KEY
@@ -27,7 +28,86 @@ class LLMClient:
         if not key or key == "gsk_your_groq_api_key_here":
             key = os.getenv("GROQ_API_KEY", "")
 
-        self.client = groq.AsyncGroq(api_key=key)
+        self.default_key = key
+        self.default_client = groq.AsyncGroq(api_key=key)
+        self.client = self.default_client
+
+    @staticmethod
+    async def validate_key(api_key: str, provider: str) -> bool:
+        """Validate the API key by making a minimal test call to the provider."""
+        if not api_key:
+            return False
+        try:
+            if provider == "openai":
+                import openai
+                client = openai.AsyncOpenAI(api_key=api_key)
+                await client.chat.completions.create(
+                    messages=[{"role": "user", "content": "Ping"}],
+                    model="gpt-4o-mini",
+                    max_tokens=1,
+                )
+            elif provider == "groq":
+                client = groq.AsyncGroq(api_key=api_key)
+                await client.chat.completions.create(
+                    messages=[{"role": "user", "content": "Ping"}],
+                    model="llama-3.3-70b-versatile",
+                    max_tokens=1,
+                )
+            else:
+                return False
+            return True
+        except Exception as e:
+            # Raise clear validation error
+            raise ValidationError(
+                detail=f"API key validation failed for {provider.upper()}: {str(e)}"
+            ) from e
+
+    def _get_client_and_model(
+        self,
+        model: Any,
+        api_key: str | None = None,
+        provider: str | None = None,
+    ) -> tuple[Any, str, str]:
+        """Resolve the client, provider, and model name to use based on inputs."""
+        prov = provider or "groq"
+        key = api_key
+
+        if not key:
+            if prov == "groq":
+                key = self.default_key
+            else:
+                key = os.getenv("OPENAI_API_KEY", "")
+
+        if not key or key == "gsk_your_groq_api_key_here":
+            raise ValidationError(
+                detail=f"API key for {prov.upper()} is not configured. Please set it in Settings."
+            )
+
+        model_str = model.value if hasattr(model, "value") else str(model)
+
+        if prov == "openai":
+            import openai
+            # Map Groq models to OpenAI equivalents if needed
+            if model_str == GroqModel.DEEPSEEK_R1.value:
+                model_name = "gpt-4o"
+            elif model_str == GroqModel.LLAMA_70B.value:
+                model_name = "gpt-4o-mini"
+            else:
+                model_name = model_str
+            client = openai.AsyncOpenAI(api_key=key)
+        else:
+            if model_str not in [GroqModel.LLAMA_70B.value, GroqModel.DEEPSEEK_R1.value]:
+                # Fallback if an invalid groq model is passed
+                model_name = GroqModel.LLAMA_70B.value
+            else:
+                model_name = model_str
+            
+            if key == self.default_key or key == "dummy_key":
+                client = self.client
+            else:
+                client = groq.AsyncGroq(api_key=key)
+
+        return client, prov, model_name
 
     def _validate_model(self, model: Any) -> None:
         """Reject any model parameters outside of the strict GroqModel enum."""
@@ -48,13 +128,16 @@ class LLMClient:
         model: GroqModel,
         temperature: float = 0.1,
         max_tokens: int = 4096,
+        api_key: str | None = None,
+        provider: str | None = None,
     ) -> dict[str, Any]:
         """Perform a standard non-streaming chat completion."""
         self._validate_model(model)
+        client, prov, model_name = self._get_client_and_model(model, api_key, provider)
 
-        response = await self.client.chat.completions.create(
+        response = await client.chat.completions.create(
             messages=messages,  # type: ignore
-            model=model.value,
+            model=model_name,
             temperature=temperature,
             max_tokens=max_tokens,
             stream=False,
@@ -80,14 +163,16 @@ class LLMClient:
         model: GroqModel,
         temperature: float = 0.1,
         max_tokens: int = 4096,
+        api_key: str | None = None,
+        provider: str | None = None,
     ) -> AsyncIterator[str]:
         """Perform a streaming chat completion yielding string tokens."""
         self._validate_model(model)
+        client, prov, model_name = self._get_client_and_model(model, api_key, provider)
 
-        # Retry logic inside stream setup is handled by the initial create call
-        response_stream = await self.client.chat.completions.create(
+        response_stream = await client.chat.completions.create(
             messages=messages,  # type: ignore
-            model=model.value,
+            model=model_name,
             temperature=temperature,
             max_tokens=max_tokens,
             stream=True,
@@ -108,14 +193,17 @@ class LLMClient:
         messages: list[dict[str, Any]],
         tools: list[dict[str, Any]],
         model: GroqModel,
+        api_key: str | None = None,
+        provider: str | None = None,
     ) -> dict[str, Any]:
         """Perform a completion with tool support."""
         self._validate_model(model)
+        client, prov, model_name = self._get_client_and_model(model, api_key, provider)
 
-        response = await self.client.chat.completions.create(
+        response = await client.chat.completions.create(
             messages=messages,  # type: ignore
             tools=tools,  # type: ignore
-            model=model.value,
+            model=model_name,
             stream=False,
         )
 

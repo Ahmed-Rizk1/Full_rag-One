@@ -8,7 +8,7 @@ Production-grade multi-agent AI platform with RAG, real-time streaming, and work
 |---|---|
 | **Frontend** | Next.js 15, TypeScript, TailwindCSS |
 | **Backend API** | FastAPI, Pydantic, SQLAlchemy 2.0, async |
-| **LLM** | Groq API (Llama 3.3 70B, DeepSeek R1 70B) |
+| **LLM** | Groq API (Llama 3.3 70B, DeepSeek R1 70B) or OpenAI API (GPT-4o, GPT-4o-mini) |
 | **Agents** | LangGraph orchestrator, Research/Code/Planning agents |
 | **RAG** | ChromaDB, sentence-transformers, hybrid retrieval |
 | **Task Queue** | Celery + Redis |
@@ -23,7 +23,7 @@ Production-grade multi-agent AI platform with RAG, real-time streaming, and work
 git clone https://github.com/Ahmed-Rizk1/Full_rag-One.git
 cd Full_rag-One
 cp .env.example .env
-# Edit .env → set SECRET_KEY and GROQ_API_KEY
+# Edit .env → set SECRET_KEY. (Optional) set GROQ_API_KEY. Users can configure their own keys in settings.
 ```
 
 ### 2. Launch with Docker Compose
@@ -69,6 +69,7 @@ npm run dev
 | POST | `/api/v1/auth/login` | Login (JWT) |
 | POST | `/api/v1/auth/refresh` | Refresh token |
 | GET | `/api/v1/auth/me` | Current user |
+| PUT | `/api/v1/auth/settings` | Update preferred provider (Groq or OpenAI) and validate API keys |
 | POST | `/api/v1/documents/upload` | Upload document (PDF/DOCX/TXT) |
 | GET | `/api/v1/documents/` | List documents |
 | POST | `/api/v1/chat/{id}/message` | Send message (SSE stream) |
@@ -104,6 +105,14 @@ frontend/
 │   └── types/           # TypeScript interfaces
 └── Dockerfile
 ```
+
+## SaaS API Key Configuration
+
+This project supports dynamic, multi-tenant API key routing. Each user signs up and provides their own Groq or OpenAI API key.
+- Navigate to `/settings` after logging in.
+- Choose your preferred LLM provider (Groq or OpenAI).
+- Enter your credentials, which are validated instantly against the provider API before saving.
+- The multi-agent orchestrator dynamically routes completions and token streams using your credentials.
 
 ## License
 

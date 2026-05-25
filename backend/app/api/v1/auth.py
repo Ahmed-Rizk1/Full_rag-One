@@ -9,9 +9,11 @@ from app.core.schemas.user import (
     SignupRequest,
     TokenResponse,
     UserResponse,
+    UpdateSettingsRequest,
 )
 from app.models.user import User
 from app.services.auth_service import auth_service
+from app.services.llm_client import LLMClient
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -106,3 +108,41 @@ async def verify_email(
         </body>
     </html>
     """
+
+
+@router.put(
+    "/settings",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_settings(
+    settings_data: UpdateSettingsRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update user API keys and preferred provider, validating any new keys first."""
+    if settings_data.openai_api_key is not None:
+        if settings_data.openai_api_key.strip():
+            await LLMClient.validate_key(settings_data.openai_api_key, "openai")
+            current_user.openai_api_key = settings_data.openai_api_key.strip()
+        else:
+            current_user.openai_api_key = None
+
+    if settings_data.groq_api_key is not None:
+        if settings_data.groq_api_key.strip():
+            await LLMClient.validate_key(settings_data.groq_api_key, "groq")
+            current_user.groq_api_key = settings_data.groq_api_key.strip()
+        else:
+            current_user.groq_api_key = None
+
+    if settings_data.preferred_provider is not None:
+        if settings_data.preferred_provider not in ("openai", "groq"):
+            from app.core.exceptions import ValidationError
+            raise ValidationError(detail="Preferred provider must be 'openai' or 'groq'.")
+        current_user.preferred_provider = settings_data.preferred_provider
+
+    db.add(current_user)
+    await db.commit()
+    await db.refresh(current_user)
+    return current_user
+

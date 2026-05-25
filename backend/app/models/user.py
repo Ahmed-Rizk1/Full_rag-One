@@ -38,3 +38,18 @@ class User(Base, UUIDMixin, TimestampMixin):
         String(255),
         nullable=True,
     )
+    openai_api_key: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    groq_api_key: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
+    preferred_provider: Mapped[str | None] = mapped_column(
+        String(50),
+        default="groq",
+        server_default="groq",
+        nullable=True,
+    )
+

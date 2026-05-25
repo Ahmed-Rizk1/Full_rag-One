@@ -3,6 +3,9 @@ export interface User {
   email: string;
   full_name: string;
   tier: string;
+  preferred_provider?: string;
+  has_openai_key?: boolean;
+  has_groq_key?: boolean;
 }
 
 export interface Conversation {

@@ -55,6 +55,8 @@ class ResearchAgent:
             async for token in self.llm_client.stream(
                 messages=formatted_messages,
                 model=GroqModel.LLAMA_70B,
+                api_key=state.get("api_key"),
+                provider=state.get("provider"),
             ):
                 content_pieces.append(token)
                 await queue.put({"type": "token", "content": token})
@@ -66,8 +68,11 @@ class ResearchAgent:
             response = await self.llm_client.complete(
                 messages=formatted_messages,
                 model=GroqModel.LLAMA_70B,
+                api_key=state.get("api_key"),
+                provider=state.get("provider"),
             )
             full_content = response["content"]
+
 
         assistant_msg = {"role": "assistant", "content": full_content}
 

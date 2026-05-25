@@ -89,6 +89,8 @@ Query: "{query_str}"
         response = await self.llm_client.complete(
             messages=[{"role": "user", "content": prompt}],
             model=GroqModel.LLAMA_70B,
+            api_key=state.get("api_key"),
+            provider=state.get("provider"),
         )
 
         intent = response["content"].strip().lower()
@@ -129,6 +131,8 @@ Query: "{query_str}"
             async for token in self.llm_client.stream(
                 messages=formatted,
                 model=GroqModel.LLAMA_70B,
+                api_key=state.get("api_key"),
+                provider=state.get("provider"),
             ):
                 content_pieces.append(token)
                 await queue.put({"type": "token", "content": token})
@@ -138,8 +142,11 @@ Query: "{query_str}"
             response = await self.llm_client.complete(
                 messages=formatted,
                 model=GroqModel.LLAMA_70B,
+                api_key=state.get("api_key"),
+                provider=state.get("provider"),
             )
             full_content = response["content"]
+
 
         assistant_msg = {"role": "assistant", "content": full_content}
         return {"messages": messages + [assistant_msg]}

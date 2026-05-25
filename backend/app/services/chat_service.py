@@ -77,6 +77,25 @@ class ChatService:
         if not conv or conv.user_id != user_id:
             raise ValueError("Conversation not found.")
 
+        # 1a. Fetch user to retrieve their API keys
+        from app.repositories.user_repo import user_repository
+        from app.core.exceptions import ValidationError
+        from app.config import settings
+
+        user = await user_repository.get(db, id=user_id)
+        if not user:
+            raise ValidationError(detail="User not found.")
+
+        provider = user.preferred_provider or "groq"
+        api_key = user.openai_api_key if provider == "openai" else user.groq_api_key
+
+        # Validate that the key exists (allow bypass for testing environment)
+        if not api_key and settings.ENVIRONMENT != "testing":
+            raise ValidationError(
+                detail=f"Please configure your {provider.upper()} API key in settings before starting a conversation."
+            )
+
+
         # 2. Persist user message to database
         user_msg_data = {
             "conversation_id": conversation_id,
@@ -110,7 +129,10 @@ class ChatService:
             "tool_results": [],
             "db": db,
             "queue": queue,
+            "api_key": api_key,
+            "provider": provider,
         }
+
 
         # 5. Run the LangGraph orchestration in a separate asyncio Task
         async def run_graph():
